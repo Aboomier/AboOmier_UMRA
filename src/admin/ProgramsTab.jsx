@@ -9,10 +9,15 @@ import { compressImage } from '../lib/image';
 import { monthLabel } from '../lib/dateUtils';
 
 const emptyForm = {
-  title: '', type: 'عمرة', companyId: '', companyName: '',
+  title: '', type: 'عمرة', category: 'عمرة', companyId: '', companyName: '',
   price: '', duration: '', startDate: '', notes: '',
   features: [], posterUrl: '', featured: false,
 };
+//   const emptyForm = {
+//   title: '', type: 'عمرة', companyId: '', companyName: '',
+//   price: '', duration: '', startDate: '', notes: '',
+//   features: [], posterUrl: '', featured: false,
+// }; 
 
 export default function ProgramsTab() {
   const [programs, setPrograms] = useState([]);
@@ -104,7 +109,8 @@ export default function ProgramsTab() {
           {['عمرة', 'حج'].map((t) => (
             <button
               key={t}
-              onClick={() => setForm({ ...form, type: t })}
+              onClick={() => setForm({ ...form, type: t, category: t })}
+              // onClick={() => setForm({ ...form, type: t })}
               className={
                 'flex-1 py-2 rounded-xl text-sm font-bold border ' +
                 (form.type === t ? 'bg-emerald-900 text-white border-emerald-900' : 'bg-white text-stone-500 border-stone-200')
