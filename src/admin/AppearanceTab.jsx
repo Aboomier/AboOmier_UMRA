@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader2, Check } from 'lucide-react';
+import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { subscribeSettings, updateSettings } from '../lib/firestore';
 import { uploadImage } from '../lib/cloudinary';
 import { compressImage } from '../lib/image';
@@ -10,6 +10,7 @@ export default function AppearanceTab() {
   const [form, setForm] = useState({});
   const [uploading, setUploading] = useState('');
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
   const coverRef = useRef();
   const sidebarRef = useRef();
 
@@ -18,25 +19,41 @@ export default function AppearanceTab() {
   async function handleImage(e, field, folder) {
     const file = e.target.files?.[0];
     if (!file) return;
+    setError('');
     setUploading(field);
-    const compressed = await compressImage(file);
-    const url = await uploadImage(compressed, `${folder}/${Date.now()}-${compressed.name}`);
-    await updateSettings({ [field]: url });
+    try {
+      const compressed = await compressImage(file);
+      const url = await uploadImage(compressed, `${folder}/${Date.now()}-${compressed.name}`);
+      await updateSettings({ [field]: url });
+    } catch (err) {
+      setError(err?.message || 'حدث خطأ غير متوقع أثناء رفع الصورة');
+    }
     setUploading('');
   }
 
   async function saveText() {
-    await updateSettings({
-      agentName: form.agentName || '',
-      agentPhone: form.agentPhone || '',
-      tagline: form.tagline || '',
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+    setError('');
+    try {
+      await updateSettings({
+        agentName: form.agentName || '',
+        agentPhone: form.agentPhone || '',
+        tagline: form.tagline || '',
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    } catch (err) {
+      setError(err?.message || 'حدث خطأ غير متوقع أثناء الحفظ');
+    }
   }
 
   return (
     <div className="flex flex-col gap-5">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-3 py-2.5 flex items-start gap-2">
+          <AlertCircle size={14} className="shrink-0 mt-0.5" />
+          <span className="break-words">{error}</span>
+        </div>
+      )}
       <div>
         <label className="block text-xs font-bold text-stone-500 mb-1.5">
           صورة الغلاف (تظهر أعلى صفحة العميل، بنفس فكرة غلاف فيسبوك)
