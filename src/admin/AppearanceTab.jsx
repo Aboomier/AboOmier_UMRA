@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Loader2, Check } from 'lucide-react';
 import { subscribeSettings, updateSettings } from '../lib/firestore';
 import { uploadImage } from '../lib/cloudinary';
+import { compressImage } from '../lib/image';
 
 // كل ما يخص شكل صفحة العميل: الغلاف العلوي، البانر الجانبي، والاسم/الهاتف الذي يظهر للعميل
 export default function AppearanceTab() {
@@ -18,7 +19,8 @@ export default function AppearanceTab() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(field);
-    const url = await uploadImage(file, `${folder}/${Date.now()}-${file.name}`);
+    const compressed = await compressImage(file);
+    const url = await uploadImage(compressed, `${folder}/${Date.now()}-${compressed.name}`);
     await updateSettings({ [field]: url });
     setUploading('');
   }
