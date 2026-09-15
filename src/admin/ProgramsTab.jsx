@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Plus, Pencil, Trash2, X, Check, Star, Loader2, Image as ImgIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Check, Star, Loader2, Image as ImgIcon, AlertCircle } from 'lucide-react';
 import {
   subscribePrograms, subscribeCompanies, addProgram, updateProgram,
   deleteProgram,
@@ -22,6 +22,7 @@ export default function ProgramsTab() {
   const [featureDraft, setFeatureDraft] = useState('');
   const [uploading, setUploading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [error, setError] = useState('');
   const fileRef = useRef();
 
   useEffect(() => subscribePrograms(setPrograms), []);
@@ -55,22 +56,33 @@ export default function ProgramsTab() {
   async function handlePoster(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    setError('');
     setUploading(true);
-    const compressed = await compressImage(file);
-    const url = await uploadImage(compressed, `posters/${Date.now()}-${compressed.name}`);
-    setForm((f) => ({ ...f, posterUrl: url }));
+    try {
+      const compressed = await compressImage(file);
+      const url = await uploadImage(compressed, `posters/${Date.now()}-${compressed.name}`);
+      setForm((f) => ({ ...f, posterUrl: url }));
+    } catch (err) {
+      setError(err?.message || 'حدث خطأ غير متوقع أثناء رفع الصورة');
+    }
     setUploading(false);
   }
   async function save() {
-    if (!form.title.trim() || !form.companyId) return;
+    setError('');
+    if (!form.title.trim()) return setError('الرجاء إدخال اسم البرنامج');
+    if (!form.companyId) return setError('الرجاء اختيار الشركة المنفذة');
     const data = { ...form };
     delete data.id;
-    if (editing === 'new') {
-      await addProgram(data);
-    } else {
-      await updateProgram(editing, data);
+    try {
+      if (editing === 'new') {
+        await addProgram(data);
+      } else {
+        await updateProgram(editing, data);
+      }
+      setEditing(null);
+    } catch (err) {
+      setError(err?.message || 'حدث خطأ غير متوقع أثناء الحفظ');
     }
-    setEditing(null);
   }
 
   if (editing) {
@@ -80,6 +92,13 @@ export default function ProgramsTab() {
           <h2 className="font-bold">{editing === 'new' ? 'برنامج جديد' : 'تعديل البرنامج'}</h2>
           <button onClick={() => setEditing(null)} className="text-stone-400"><X size={18} /></button>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-3 py-2.5 flex items-start gap-2">
+            <AlertCircle size={14} className="shrink-0 mt-0.5" />
+            <span className="break-words">{error}</span>
+          </div>
+        )}
 
         <div className="flex gap-2">
           {['عمرة', 'حج'].map((t) => (
@@ -175,6 +194,12 @@ export default function ProgramsTab() {
 
   return (
     <div className="flex flex-col gap-3">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-3 py-2.5 flex items-start gap-2">
+          <AlertCircle size={14} className="shrink-0 mt-0.5" />
+          <span className="break-words">{error}</span>
+        </div>
+      )}
       <button onClick={openNew} className="self-start flex items-center gap-1.5 bg-emerald-900 text-white rounded-xl px-4 py-2 text-sm font-bold">
         <Plus size={15} /> برنامج جديد
       </button>
