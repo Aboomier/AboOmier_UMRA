@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // برامج الحج والعمرة: قراءة عامة للجميع (شاشة العميل)، والكتابة فقط لمستخدم مسجل دخول (لوحة التحكم)
+    match /programs/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    // الشركات ومميزاتها الداخلية: قراءة عامة (تُستخدم لبناء مميزات البرنامج)، كتابة للمسؤول فقط
+    match /companies/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    // إعدادات الواجهة (الغلاف، البانر، بيانات التواصل)
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
