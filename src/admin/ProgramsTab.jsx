@@ -5,6 +5,7 @@ import {
   deleteProgram,
 } from '../lib/firestore';
 import { uploadImage } from '../lib/cloudinary';
+import { compressImage } from '../lib/image';
 import { monthLabel } from '../lib/dateUtils';
 
 const emptyForm = {
@@ -16,7 +17,7 @@ const emptyForm = {
 export default function ProgramsTab() {
   const [programs, setPrograms] = useState([]);
   const [companies, setCompanies] = useState([]);
-  const [editing, setEditing] = useState(null); // null = قائمة، 'new' أو id = نموذج
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [featureDraft, setFeatureDraft] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -55,7 +56,8 @@ export default function ProgramsTab() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const url = await uploadImage(file, `posters/${Date.now()}-${file.name}`);
+    const compressed = await compressImage(file);
+    const url = await uploadImage(compressed, `posters/${Date.now()}-${compressed.name}`);
     setForm((f) => ({ ...f, posterUrl: url }));
     setUploading(false);
   }
