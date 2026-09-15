@@ -72,12 +72,19 @@ export default function ProgramsTab() {
     }
     setUploading(false);
   }
-  async function save() {
+
+    async function save() {
     setError('');
     if (!form.title.trim()) return setError('الرجاء إدخال اسم البرنامج');
     if (!form.companyId) return setError('الرجاء اختيار الشركة المنفذة');
-    const data = { ...form };
+
+    const data = { 
+      ...form,
+      category: form.category || form.type || 'عمرة',
+      type: form.type || 'عمرة'
+    };
     delete data.id;
+
     try {
       if (editing === 'new') {
         await addProgram(data);
@@ -85,10 +92,29 @@ export default function ProgramsTab() {
         await updateProgram(editing, data);
       }
       setEditing(null);
+      setForm(emptyForm);
     } catch (err) {
       setError(err?.message || 'حدث خطأ غير متوقع أثناء الحفظ');
     }
   }
+
+  // async function save() {
+  //   setError('');
+  //   if (!form.title.trim()) return setError('الرجاء إدخال اسم البرنامج');
+  //   if (!form.companyId) return setError('الرجاء اختيار الشركة المنفذة');
+  //   const data = { ...form };
+  //   delete data.id;
+  //   try {
+  //     if (editing === 'new') {
+  //       await addProgram(data);
+  //     } else {
+  //       await updateProgram(editing, data);
+  //     }
+  //     setEditing(null);
+  //   } catch (err) {
+  //     setError(err?.message || 'حدث خطأ غير متوقع أثناء الحفظ');
+  //   }
+  // }
 
   if (editing) {
     return (
